@@ -4,6 +4,9 @@ run-server:
 run-frontend:
 	cd frontend && npm run dev
 
+run-database:
+	docker-compose up db
+
 build:
 	docker-compose build
 
