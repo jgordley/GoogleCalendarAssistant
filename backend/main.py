@@ -32,10 +32,10 @@ async def create_or_update_user(user: UserIn = Body(...)):
     result = db.users.find_one({"email": user.email})
     if result:
         db.users.update_one({"email": user.email}, {"$set": user_doc})
-        return {"id": str(result["_id"]), "email": result["email"]}
+        return {**user_doc, "id": str(result["_id"])}
     else:
         result = db.users.insert_one(user_doc)
-        return {"id": str(result.inserted_id), "email": result["email"]}
+        return {**user_doc, "id": str(result.inserted_id)}
 
 
 @app.get("/users/{email}", response_model=UserOut)
