@@ -1,47 +1,21 @@
-from fastapi import FastAPI, HTTPException, Body
-from pydantic import BaseModel
-from pymongo import MongoClient
-from config import settings
+from fastapi import FastAPI, APIRouter
+from fastapi.middleware.cors import CORSMiddleware
+
+from routers import user_routes, calendar_routes, event_routes
+
 
 app = FastAPI()
+origins = ["http://localhost:3000"]
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-class UserIn(BaseModel):
-    email: str
-    name: str
-    access_token: str
-    timestamp: str
-
-
-class UserOut(UserIn):
-    id: str
-
-
-client = MongoClient(settings.mongodb_url)
-db = client[settings.database_name]
-
-
-@app.get("/")
-def read_root():
-    return {"Hello": "World"}
-
-
-@app.post("/users", response_model=UserOut)
-async def create_or_update_user(user: UserIn = Body(...)):
-    user_doc = user.dict()
-    result = db.users.find_one({"email": user.email})
-    if result:
-        db.users.update_one({"email": user.email}, {"$set": user_doc})
-        return {**user_doc, "id": str(result["_id"])}
-    else:
-        result = db.users.insert_one(user_doc)
-        return {**user_doc, "id": str(result.inserted_id)}
-
-
-@app.get("/users/{email}", response_model=UserOut)
-def get_user_by_email(email: str):
-    user = db.users.find_one({"email": email})
-    if user:
-        return {**user, "id": str(user["_id"])}
-    else:
-        raise HTTPException(status_code=404, detail="User not found")
+router = APIRouter()
+app.include_router(user_routes.router, prefix="/users", tags=["users"])
+app.include_router(calendar_routes.router, prefix="/items", tags=["items"])
+app.include_router(event_routes.router, prefix="/events", tags=["events"])

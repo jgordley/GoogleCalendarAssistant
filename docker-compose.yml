@@ -3,6 +3,8 @@ version: '3.8'
 services:
   db:
     image: mongo
+    env_file:
+      - .env.local
     container_name: mongo
     ports:
       - "27017:27017"
@@ -11,6 +13,8 @@ services:
 
   server:
     build: ./backend
+    env_file:
+      - .env.local
     container_name: fastapi_server
     ports:
       - "8000:8000"
@@ -19,6 +23,8 @@ services:
 
   frontend:
     build: ./frontend
+    env_file:
+      - .env.local
     container_name: nextjs_frontend
     ports:
       - "3000:3000"
