@@ -6,3 +6,8 @@ class User(BaseModel):
     name: str
     access_token: str
     timestamp: str
+
+
+class UserResponse(BaseModel):
+    id: str
+    email: str

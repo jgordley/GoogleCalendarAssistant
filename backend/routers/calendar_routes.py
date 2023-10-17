@@ -8,7 +8,7 @@ router = APIRouter()
 LIST_CALENDARS_ENDPOINT = "https://www.googleapis.com/calendar/v3/users/me/calendarList"
 
 
-@router.post("/")
+@router.post("")
 def get_calendars_list(calendar_list_request: CalendarListRequest, db=Depends(get_db)):
     user = db.users.find_one({"email": calendar_list_request.email})
 

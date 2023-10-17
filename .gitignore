@@ -10,8 +10,8 @@
 /coverage
 
 # next.js
-/.next/
-/out/
+./frontend/.next/
+./frontend/out/
 
 # production
 /build
@@ -39,3 +39,10 @@ next-env.d.ts
 /backend/__pycache__/
 
 .python-version
+
+# For Python cache files
+**/__pycache__/
+*.pyc
+
+# For Next.js build files
+frontend/.next/
