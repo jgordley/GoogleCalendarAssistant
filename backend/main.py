@@ -17,6 +17,6 @@ app.add_middleware(
 
 router = APIRouter()
 app.include_router(user_routes.router, prefix="/users", tags=["users"])
-app.include_router(calendar_routes.router, prefix="/items", tags=["items"])
+app.include_router(calendar_routes.router, prefix="/calendars", tags=["items"])
 app.include_router(event_routes.router, prefix="/events", tags=["events"])
 app.include_router(test_routes.router, prefix="/test", tags=["test"])

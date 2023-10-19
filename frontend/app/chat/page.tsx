@@ -1,10 +1,16 @@
 'use client';
 import { useState, useRef, useEffect } from 'react';
 import { CalendarIcon } from '@heroicons/react/24/solid';
+import Markdown from 'react-markdown';
 import SignInButton from '../components/signin-btn';
+import CalendarDropdown from '../components/calendar-dropdown';
 import { useSession } from "next-auth/react";
 import { fetchPrimaryCalendarEvents, fetchCalendarList, fetchPrimaryChat } from './CalendarUtils';
-
+const styles = {
+    markdown: {
+        all: "revert"
+    },
+}
 
 export default function Chat() {
     const { status, data: session } = useSession();
@@ -13,10 +19,36 @@ export default function Chat() {
         { user: "User2", text: "Hi! My name is Callie, your Google Calendar Assistant. What can I help you with?", color: "green" },
     ]);
 
+    const [current_calendar, setCurrentCalendar] = useState('primary');
+    const [calendar_ids, setCalendarIds] = useState([]);
+
     const [currentMessage, setCurrentMessage] = useState('');
     const messagesRef = useRef(null);
 
     const messagesEndRef = useRef<HTMLDivElement | null>(null);
+
+    useEffect(() => {
+        // Load calendar IDs on component mount
+        const loadCalendars = async () => {
+            try {
+                console.log("Trying to load calendars for: " + session?.user?.email);
+                let email: string = session?.user?.email || ''
+                const calendars = await fetchCalendarList(email);
+                console.log(calendars);
+                const calendarList = calendars.calendar_names.map((calendar: any) => Object.values(calendar)[0]);
+                console.log("Got calendars list: " + calendarList)
+                setCalendarIds(calendarList);
+            } catch (error) {
+                console.error("Failed to load calendars:", error);
+                // You can handle errors or set some default values if needed
+            }
+        };
+        // Check if the session is loaded
+        if (session && session?.user?.email && status === 'authenticated') { // Adjust the status check based on the possible values from useSession
+            loadCalendars();
+        }
+
+    }, [session, status]);
 
     useEffect(() => {
         if (messagesEndRef.current) {
@@ -55,14 +87,13 @@ export default function Chat() {
         }
 
         // Send a request to the backend
-
         if (currentMessage.includes('calendars')) {
             let email: string = session?.user?.email || '';
             let calendars = await fetchCalendarList(email);
             console.log(calendars);
 
-            const calendarNames = calendars.calendar_names.map((calendar: any) => Object.values(calendar)[0]);
-            const resultString = `Calendar Names: ${calendarNames.join(', ')}`;
+            const calendarNames: string[] = calendars.calendar_names.map((calendar: any) => Object.values(calendar)[0]);
+            const resultString = `Sure! I'd be happy to provide a list of your calendars: \n ## Calendar Names: \n ${calendarNames.map(element => '* ' + element).join('\n')}`;
 
             setMessages(prevMessages => [
                 ...prevMessages,
@@ -70,15 +101,20 @@ export default function Chat() {
             ]);
         } else if (currentMessage.includes('events')) {
             let email: string = session?.user?.email || '';
-            let events = await fetchPrimaryCalendarEvents(email);
+            let events = await fetchPrimaryCalendarEvents(email, 'primary');
             console.log(events);
 
-            const eventNames = events.events;
-            const resultString = `Upcoming Events:\n ${eventNames.join('\n ')}`;
+            const eventNames: string[] = events.events;
+            const resultString = `Here are your events in the next month: \n ## Upcoming Events: \n ${eventNames.map(element => '* ' + element).join('\n')}`;
 
             setMessages(prevMessages => [
                 ...prevMessages,
                 { user: "User2", text: resultString, color: "green" }
+            ]);
+        } else if (currentMessage.includes('pluto')) {
+            setMessages(prevMessages => [
+                ...prevMessages,
+                { user: "User2", text: '# Hi, \n **Pluto**!', color: "green" }
             ]);
         } else {
             // Append a random string message from user2 without fetching
@@ -100,7 +136,14 @@ export default function Chat() {
                     <CalendarIcon className="h-8 w-8 text-white" />
                     <h1 className="ml-2 text-2xl">Google Calendar Assistant</h1>
                 </div>
-                <SignInButton />
+                <div className="flex items-center p-4">
+                    <CalendarDropdown
+                        calendarIds={calendar_ids}
+                        onCalendarChange={setCurrentCalendar}
+                        loading={calendar_ids.length === 0}
+                    />
+                    <SignInButton />
+                </div>
             </header>
 
             <main className="flex-1 flex flex-col overflow-hidden">
@@ -108,22 +151,26 @@ export default function Chat() {
                     <div id="messages" ref={messagesEndRef} className="flex flex-col space-y-4 p-3 overflow-y-auto scrollbar-thumb-blue scrollbar-thumb-rounded scrollbar-track-blue-lighter scrollbar-w-2 scrolling-touch">
                         {messages.map((msg, idx) => (
                             msg.user === "User1" ? (
-                                <div>
+                                <div key={idx}>
                                     <div className="flex items-end justify-end">
                                         <div className="flex flex-col space-y-2 text-md leading-tight max-w-lg mx-2 order-1 items-end">
                                             <div>
-                                                <span className="px-4 py-3 rounded-xl inline-block rounded-br-none bg-blue-500 text-white">{msg.text}</span>
+                                                <span className="px-4 py-3 rounded-xl inline-block rounded-br-none bg-blue-500 text-white whitespace-pre-wrap">
+                                                    {msg.text}
+                                                </span>
                                             </div>
                                         </div>
-                                        <img src="https://i.pravatar.cc/100?img=7" alt="" className="w-6 h-6 rounded-full order-2"></img>
+                                        <img src={session?.user?.image || "https://i.pravatar.cc/100?img=7"} alt="" className="w-6 h-6 rounded-full order-2"></img>
                                     </div>
                                 </div>
                             ) : (
-                                <div>
+                                <div key={idx}>
                                     <div className="flex items-end">
                                         <div className="flex flex-col space-y-2 text-md leading-tight max-w-lg mx-2 order-2 items-start">
                                             <div>
-                                                <span className="px-4 py-3 rounded-xl inline-block rounded-bl-none bg-gray-100 text-gray-600">{msg.text}</span>
+                                                <span className="px-4 py-3 rounded-xl inline-block rounded-bl-none bg-gray-100 text-gray-600">
+                                                    <Markdown className="markdown-special">{msg.text}</Markdown>
+                                                </span>
                                             </div>
                                         </div>
                                         <img src="https://cdn.icon-icons.com/icons2/1371/PNG/512/robot02_90810.png" alt="" className="w-6 h-6 rounded-full order-1"></img>
