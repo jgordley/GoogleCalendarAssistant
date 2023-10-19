@@ -148,7 +148,7 @@ export default function Chat() {
 
             <main className="flex-1 flex flex-col overflow-hidden">
                 <div className="flex-1 p:2 sm:p-6 justify-between flex flex-col h-80 bg-white">
-                    <div id="messages" ref={messagesEndRef} className="flex flex-col space-y-4 p-3 overflow-y-auto scrollbar-thumb-blue scrollbar-thumb-rounded scrollbar-track-blue-lighter scrollbar-w-2 scrolling-touch">
+                    <div id="messages" ref={messagesEndRef} className="flex flex-col space-y-4 p-3 overflow-y-auto scrollbar scrollbar-thumb-blue scrollbar-thumb-rounded scrollbar-track-blue-lighter scrollbar-w-2 scrolling-touch">
                         {messages.map((msg, idx) => (
                             msg.user === "User1" ? (
                                 <div key={idx}>

@@ -6,3 +6,24 @@
     all: revert;
   }
   
+@layer utilities {
+.scrollbar::-webkit-scrollbar {
+    width: 10px;
+    height: 20px;
+}
+
+.scrollbar::-webkit-scrollbar-track {
+    border-radius: 100vh;
+    background: white;
+}
+
+.scrollbar::-webkit-scrollbar-thumb {
+    background: #F3F4F6;
+    border-radius: 100vh;
+    border: 3px solid #f6f7ed;
+}
+
+.scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #F3F4F6;
+}
+}
