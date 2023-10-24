@@ -10,7 +10,7 @@ from langchain.chains import LLMChain
 from typing import List, Union
 from langchain.schema import AgentAction, AgentFinish, OutputParserException
 from langchain.tools import BaseTool
-from usecases import GetCalendarEventsTool, TimeConverterTool
+from usecases import GetCalendarEventsTool, CurrentTimeTool, TimeDeltaTool
 import json
 
 
@@ -24,7 +24,7 @@ import json
 #     agent.run("What are my events coming up over the next 7 days?")
 # Set up the base template
 
-template = """You are a Calendar Assistant. You have access to the following tools:
+template = """You are a very helpful and friendly Calendar Assistant. You have access to the following tools:
 
 {tools}
 
@@ -32,19 +32,27 @@ Use the following format:
 
 Question: the input question you must answer about the user's calendar
 Thought: you should always think about what to do
-Action: the action to take, should be one of [{tool_names}]
+Action: the action to take, should be one of [{tool_names}] but always start with the current time
 Action Input: a list of input values given the schema, in JSON format example {{"input1":"x", "input2":"y"}}
 Observation: the result of the action
 ... (this Thought/Action/Action Input/Observation can repeat N times)
 Thought: I now know the final answer
-Final Answer: the final answer to the original input question
+Final Answer: the final answer to the original input question, use markdown and act like a true assistant
 
-You do not know the current day or time, when in doubt, use the time converter. Begin!
+You do not know the current day or time, you usually need to start by getting the time values needed using the `get_current_time` tool.
+You don't know anything about the user's calendar, don't lie and don't make anything up. Only answer if you are absolutely sure
+of the concrete answer. If you are not sure, you should ask the user for more information.
+
+Always check the current time before answering a question about the user's calendar.
 
 Question: {input}
 {agent_scratchpad}"""
 
-tools = [GetCalendarEventsTool(), TimeConverterTool()]
+tools = [
+    CurrentTimeTool(),
+    TimeDeltaTool(),
+    GetCalendarEventsTool(),
+]
 
 
 def format_tool_input_schema(tool: BaseTool) -> str:
@@ -154,7 +162,7 @@ class CustomOutputParser(AgentOutputParser):
         return AgentAction(tool=action, tool_input=dict_kwargs, log=llm_output)
 
 
-def run_agent_test():
+def run_agent(user_email: str, user_input: str, calendar_id: str):
     prompt = CustomPromptTemplate(
         template=template,
         tools=tools,
@@ -178,8 +186,9 @@ def run_agent_test():
     )
 
     agent_executor = AgentExecutor.from_agent_and_tools(
-        agent=agent, tools=tools, verbose=True
+        agent=agent, tools=tools, verbose=True, handle_parsing_errors=True
     )
-    agent_executor.run(
-        "UserID: jack123, CalendarID: 15c, User prompt: Can you list my calendar events over the next month?"
+    result = agent_executor.run(
+        f"User email: {user_email}, CalendarID: {calendar_id}, User prompt: {user_input}",
     )
+    return result

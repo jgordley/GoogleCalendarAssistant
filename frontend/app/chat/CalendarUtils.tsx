@@ -53,3 +53,20 @@ export const fetchPrimaryChat = async (email: string) => {
 
   return response.json();
 };
+
+export const sendChatMessage = async (user_email: string, user_message: string, calendar_id: string) => {
+  const endpoint = `${BASE_URL}/chat`;
+  const response = await fetch(endpoint, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ user_email, user_message, calendar_id })
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to send chat message. Status: ${response.status}`);
+  }
+
+  return response.json();
+}

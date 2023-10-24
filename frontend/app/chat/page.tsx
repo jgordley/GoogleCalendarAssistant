@@ -5,12 +5,7 @@ import Markdown from 'react-markdown';
 import SignInButton from '../components/signin-btn';
 import CalendarDropdown from '../components/calendar-dropdown';
 import { useSession } from "next-auth/react";
-import { fetchPrimaryCalendarEvents, fetchCalendarList, fetchPrimaryChat } from './CalendarUtils';
-const styles = {
-    markdown: {
-        all: "revert"
-    },
-}
+import { fetchCalendarList, sendChatMessage } from './CalendarUtils';
 
 export default function Chat() {
     const { status, data: session } = useSession();
@@ -38,6 +33,7 @@ export default function Chat() {
                 const calendarList = calendars.calendar_names.map((calendar: any) => Object.values(calendar)[0]);
                 console.log("Got calendars list: " + calendarList)
                 setCalendarIds(calendarList);
+                setCurrentCalendar(calendarList[0]);
             } catch (error) {
                 console.error("Failed to load calendars:", error);
                 // You can handle errors or set some default values if needed
@@ -86,46 +82,19 @@ export default function Chat() {
             setCurrentMessage('');
         }
 
-        // Send a request to the backend
-        if (currentMessage.includes('calendars')) {
-            let email: string = session?.user?.email || '';
-            let calendars = await fetchCalendarList(email);
-            console.log(calendars);
+        // Send the message to the backend
+        let user_email = session?.user?.email || '';
+        let user_message = currentMessage;
+        let calendar_id = current_calendar;
+        calendar_id = 'primary';
+        console.log("Sending message to backend: " + user_email + " " + user_message + " " + calendar_id);
+        const data = await sendChatMessage(user_email, user_message, calendar_id);
 
-            const calendarNames: string[] = calendars.calendar_names.map((calendar: any) => Object.values(calendar)[0]);
-            const resultString = `Sure! I'd be happy to provide a list of your calendars: \n ## Calendar Names: \n ${calendarNames.map(element => '* ' + element).join('\n')}`;
-
-            setMessages(prevMessages => [
-                ...prevMessages,
-                { user: "User2", text: resultString, color: "green" }
-            ]);
-        } else if (currentMessage.includes('events')) {
-            let email: string = session?.user?.email || '';
-            let events = await fetchPrimaryCalendarEvents(email, 'primary');
-            console.log(events);
-
-            const eventNames: string[] = events.events;
-            const resultString = `Here are your events in the next month: \n ## Upcoming Events: \n ${eventNames.map(element => '* ' + element).join('\n')}`;
-
-            setMessages(prevMessages => [
-                ...prevMessages,
-                { user: "User2", text: resultString, color: "green" }
-            ]);
-        } else if (currentMessage.includes('pluto')) {
-            setMessages(prevMessages => [
-                ...prevMessages,
-                { user: "User2", text: '# Hi, \n **Pluto**!', color: "green" }
-            ]);
-        } else {
-            // Append a random string message from user2 without fetching
-            const randomString = Math.random().toString(36).substring(7);
-            setMessages(prevMessages => [
-                ...prevMessages,
-                { user: "User2", text: randomString, color: "green" }
-            ]);
-        }
-
-
+        // Append the response from the backend
+        setMessages(prevMessages => [
+            ...prevMessages,
+            { user: "User2", text: data.answer, color: "green" }
+        ]);
     }
 
     return (
