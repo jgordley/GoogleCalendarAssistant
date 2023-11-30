@@ -8,6 +8,12 @@ const scopes = [
 
 ].join(' ');
 
+// Get URL from environment and alert if unset
+const BASE_URL = process.env.FASTAPI_URL;
+if (!BASE_URL) {
+    console.error('FASTAPI_URL is not set');
+}
+
 export const authOptions = {
     providers: [
         GoogleProvider({
@@ -20,7 +26,7 @@ export const authOptions = {
                 params: {
                     scope: scopes
                 }
-            }
+            },
         })
     ],
     callbacks: {
@@ -31,7 +37,8 @@ export const authOptions = {
 
             // Post to the FastAPI server with the user email, name, access token, and timestamp for latest login
             try {
-                const response = await fetch('http://127.0.0.1:8000/users', {
+                const endpoint = `${BASE_URL}/users`;
+                const response = await fetch(endpoint, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'

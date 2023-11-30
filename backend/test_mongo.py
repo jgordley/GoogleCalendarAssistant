@@ -1,15 +1,14 @@
 from pymongo import MongoClient, errors
-from config import settings
 import time
-import logging
 
 MAX_RETRIES = 10
 RETRY_DELAY = 5  # seconds
 
+mongodb_uri="mongodb://localhost:27017"
 
 def connect_to_mongo():
     client = MongoClient(
-        settings.mongodb_uri, serverSelectionTimeoutMS=2000  # 2 seconds timeout
+        mongodb_uri, serverSelectionTimeoutMS=2000  # 2 seconds timeout
     )
     try:
         # The ismaster command is cheap and does not require auth.
@@ -33,4 +32,4 @@ if not client:
 
 print("Connected to MongoDB successfully.")
 
-db = client[settings.database_name]
+db = client["google_calendar_assistant_database"]

@@ -79,11 +79,13 @@ def extract_action_input(response_text):
             json_str = line.replace("Action Input:", "").strip()
 
             # Try to parse the JSON string into a dictionary
+            if json_str == "None":
+                return {}
             try:
                 return json.loads(json_str)
             except json.JSONDecodeError:
                 print("Error decoding JSON")
-                return None
+                return {}
 
 
 def extract_action(response_text):
@@ -183,10 +185,11 @@ def run_agent(user_email: str, user_input: str, calendar_id: str):
         output_parser=output_parser,
         stop=["\nObservation:"],
         allowed_tools=tool_names,
+        handle_parsing_errors="Check your output and make sure it conforms!",
     )
 
     agent_executor = AgentExecutor.from_agent_and_tools(
-        agent=agent, tools=tools, verbose=True, handle_parsing_errors=True
+        agent=agent, tools=tools, verbose=True
     )
     result = agent_executor.run(
         f"User email: {user_email}, CalendarID: {calendar_id}, User prompt: {user_input}",

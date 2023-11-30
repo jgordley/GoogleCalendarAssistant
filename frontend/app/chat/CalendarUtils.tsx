@@ -1,33 +1,8 @@
-const BASE_URL = "http://localhost:8000";
-
-export const fetchPrimaryCalendarEvents = async (email: string, calendar_id: string) => {
-  const endpoint = `${BASE_URL}/events/upcoming_month`;
-
-  // Make a POST request to the endpoint with "email" and "calendar_id" in the body
-  // {
-  //   "email": "string",
-  //   "calendar_id": "string"
-  // }
-
-  const response = await fetch(endpoint, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({ email, calendar_id })
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch primary calendar. Status: ${response.status}`);
-  }
-
-  return response.json();
-};
-
 export const fetchCalendarList = async (email: string) => {
-  const endpoint = `${BASE_URL}/calendars`;
+  // Endpoint is now the internal API route
+  const endpoint = `/api/calendars`;
 
-  // Make a POST request to the endpoint with "email" in the body
+  // Make a POST request to the internal API route with "email" in the body
   const response = await fetch(endpoint, {
     method: "POST",
     headers: {
@@ -43,30 +18,21 @@ export const fetchCalendarList = async (email: string) => {
   return response.json();
 };
 
-export const fetchPrimaryChat = async (email: string) => {
-  const endpoint = `${BASE_URL}/chat/primary/${encodeURIComponent(email)}`;
-  const response = await fetch(endpoint);
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch primary chat. Status: ${response.status}`);
-  }
-
-  return response.json();
-};
-
 export const sendChatMessage = async (user_email: string, user_message: string, calendar_id: string) => {
-  const endpoint = `${BASE_URL}/chat`;
-  const response = await fetch(endpoint, {
-    method: "POST",
+  // Inside your component or utility function
+  const response = await fetch('/api/chat', {
+    method: 'POST',
     headers: {
-      "Content-Type": "application/json"
+      'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ user_email, user_message, calendar_id })
+    body: JSON.stringify({ user_email, user_message, calendar_id }),
   });
 
   if (!response.ok) {
-    throw new Error(`Failed to send chat message. Status: ${response.status}`);
+    throw new Error('Failed to send message');
   }
 
-  return response.json();
+  let result = await response.json();
+
+  return result.apiResponse;
 }

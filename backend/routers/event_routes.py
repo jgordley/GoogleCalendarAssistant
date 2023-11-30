@@ -36,6 +36,9 @@ def get_calendars_list(event_list_request: EventListRequest, db=Depends(get_db))
 
         # Make the request
         response = requests.get(endpoint, headers=headers, params=params)
+        print(response)
+        print(response.text)
+        response.raise_for_status()
         events = response.json()
 
         # List the events

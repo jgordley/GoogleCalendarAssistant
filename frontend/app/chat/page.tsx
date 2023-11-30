@@ -52,21 +52,6 @@ export default function Chat() {
         }
     }, [messages]);  // assuming `messages` is the array of messages
 
-    function renderWithLineBreaks(text: string) {
-        const newText = text.split('\n').map((str, index, array) =>
-            index === array.length - 1 ? str : <>
-                {str}
-                <br />
-            </>
-        );
-        return newText;
-    }
-
-    // TODO: Make this into a function instead of setting new message state directly in each handler
-    // const updateMessages = async (newMessage: any) => {
-
-    // }
-
 
     const handleSendMessage = async (e: any) => {
 
@@ -89,6 +74,7 @@ export default function Chat() {
         calendar_id = 'primary';
         console.log("Sending message to backend: " + user_email + " " + user_message + " " + calendar_id);
         const data = await sendChatMessage(user_email, user_message, calendar_id);
+        console.log(data);
 
         // Append the response from the backend
         setMessages(prevMessages => [
