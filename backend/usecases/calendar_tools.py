@@ -2,7 +2,7 @@ from typing import Type, Optional
 from datetime import datetime, timedelta
 from pydantic import BaseModel, Field
 from langchain.tools import BaseTool
-from usecases import get_calendar_events
+from usecases import get_calendar_events, create_event
 
 
 class CalendarEventSearchInput(BaseModel):
@@ -76,8 +76,8 @@ class TimeDeltaInput(BaseModel):
 class TimeDeltaTool(BaseTool):
     name = "get_future_time"
     description = """
-    Useful when you want to get a future time in an RFC3339 timestamp, given a time delta such as 1 day, 2 hours, 3 minutes, 4 seconds. 
-    """
+Useful when you want to get a future time in an RFC3339 timestamp, given a time delta such as 1 day, 2 hours, 3 minutes, 4 seconds. 
+"""
     args_schema: Type[BaseModel] = TimeDeltaInput
 
     def _run(
@@ -102,4 +102,62 @@ class TimeDeltaTool(BaseTool):
         raise NotImplementedError("get_future_time does not support async")
 
 
-# TODO: Set up a tool to convert natural language time to a datetime accepted by the google calendar api
+class SpecificTimeInput(BaseModel):
+    """Inputs for setting a specific time"""
+
+    year: int = Field(description="Year of the event")
+    month: int = Field(description="Month of the event")
+    day: int = Field(description="Day of the event")
+    hour: int = Field(description="Hour of the event")
+    minute: int = Field(description="Minute of the event")
+
+
+class SpecificTimeTool(BaseTool):
+    name = "set_specific_time"
+    description = "Sets a specific time for an event, for example when you want to create an event at 3pm on June 3rd, 2021."
+    args_schema: Type[BaseModel] = SpecificTimeInput
+
+    def _run(self, year: int, month: int, day: int, hour: int, minute: int):
+        specific_time = datetime(year, month, day, hour, minute)
+        return specific_time.strftime("%Y-%m-%dT%H:%M:%S%z")
+
+    def _arun(self):
+        raise NotImplementedError("set_specific_time does not support async")
+
+
+class CalendarCreateInput(BaseModel):
+    """Inputs for create_calendar_event"""
+
+    user_email: str = Field(description="email of the user")
+    calendar_id: str = Field(description="calendar id of the calendar")
+    event_name: str = Field(description="name of the event")
+    start_datetime: str = Field(
+        description="Start datetime of the event to create. Must be an RFC3339 timestamp, no need for timezone for example, 2011-06-03T10:00:00-07:00, 2011-06-03 "
+    )
+    end_datetime: str = Field(
+        description="End datetime of the event to create. Must be an RFC3339 timestamp, no need for timezone for example, 2011-06-03T10:00:00-07:00, 2011-06-03"
+    )
+
+
+class CreateCalendarEventTool(BaseTool):
+    name = "create_calendar_event"
+    description = """
+Useful when you want to create a calendar event given a calendar id, event name, start time, and end time.
+"""
+    args_schema: Type[BaseModel] = CalendarCreateInput
+
+    def _run(
+        self,
+        user_email: str,
+        calendar_id: str,
+        event_name: str,
+        start_datetime: str,
+        end_datetime: str,
+    ):
+        events_response = create_event(
+            user_email, calendar_id, event_name, start_datetime, end_datetime
+        )
+        return events_response
+
+    def _arun(self):
+        raise NotImplementedError("create_calendar_event does not support async")

@@ -18,6 +18,7 @@ const CalendarDropdown: React.FC<Props> = ({ calendarIds, onCalendarChange, load
 
     const handleChange = (e: ChangeEvent<HTMLSelectElement>) => {
         if (!loading) {
+            console.log("CalendarDropdown.tsx handleChange: " + e.target.value);
             setSelectedCalendar(e.target.value);
         }
     };

@@ -16,11 +16,28 @@ export default function Chat() {
 
     const [current_calendar, setCurrentCalendar] = useState('primary');
     const [calendar_ids, setCalendarIds] = useState([]);
+    const [calendar_objs, setCalendarObjs] = useState([{}]);
 
     const [currentMessage, setCurrentMessage] = useState('');
     const messagesRef = useRef(null);
 
     const messagesEndRef = useRef<HTMLDivElement | null>(null);
+
+    const get_calendar_id = (calendar_name: string) => {
+        for (let i = 0; i < calendar_objs.length; i++) {
+            // Get the key-value pair from the object
+            const [calendar_id, name] = Object.entries(calendar_objs[i])[0];
+    
+            // Check if the name matches
+            if (name === calendar_name) {
+                return calendar_id;
+            }
+        }
+    
+        // Return an appropriate value if not found
+        return "primary";
+    };
+
 
     useEffect(() => {
         // Load calendar IDs on component mount
@@ -34,6 +51,7 @@ export default function Chat() {
                 console.log("Got calendars list: " + calendarList)
                 setCalendarIds(calendarList);
                 setCurrentCalendar(calendarList[0]);
+                setCalendarObjs(calendars.calendar_names);
             } catch (error) {
                 console.error("Failed to load calendars:", error);
                 // You can handle errors or set some default values if needed
@@ -45,6 +63,13 @@ export default function Chat() {
         }
 
     }, [session, status]);
+
+    // useEffect to check if selected calendar has changed
+    useEffect(() => {
+        console.log("Calendar changed to: " + current_calendar);
+
+    }, [current_calendar]);
+
 
     useEffect(() => {
         if (messagesEndRef.current) {
@@ -70,8 +95,7 @@ export default function Chat() {
         // Send the message to the backend
         let user_email = session?.user?.email || '';
         let user_message = currentMessage;
-        let calendar_id = current_calendar;
-        calendar_id = 'primary';
+        let calendar_id = get_calendar_id(current_calendar);
         console.log("Sending message to backend: " + user_email + " " + user_message + " " + calendar_id);
         const data = await sendChatMessage(user_email, user_message, calendar_id);
         console.log(data);
@@ -101,7 +125,7 @@ export default function Chat() {
                 </div>
             </header>
 
-            <main className="flex-1 flex flex-col overflow-hidden">
+            <main className="flex-1 flex flex-col overflow-hidden container mx-auto px-4">
                 <div className="flex-1 p:2 sm:p-6 justify-between flex flex-col h-80 bg-white">
                     <div id="messages" ref={messagesEndRef} className="flex flex-col space-y-4 p-3 overflow-y-auto scrollbar scrollbar-thumb-blue scrollbar-thumb-rounded scrollbar-track-blue-lighter scrollbar-w-2 scrolling-touch">
                         {messages.map((msg, idx) => (
