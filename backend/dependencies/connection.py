@@ -33,4 +33,4 @@ if not client:
 
 print("Connected to MongoDB successfully.")
 
-db = client[settings.database_name]
+db = client[settings.mongodb_database]

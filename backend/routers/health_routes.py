@@ -4,5 +4,5 @@ router = APIRouter()
 
 
 @router.post("")
-def ready_check():
+def health_check():
     return {"status": "ok"}
