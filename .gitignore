@@ -48,3 +48,5 @@ next-env.d.ts
 
 # For Next.js build files
 frontend/.next/
+
+push_images.sh

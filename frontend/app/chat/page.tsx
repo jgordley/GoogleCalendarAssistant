@@ -6,12 +6,13 @@ import SignInButton from '../components/signin-btn';
 import CalendarDropdown from '../components/calendar-dropdown';
 import { useSession } from "next-auth/react";
 import { fetchCalendarList, sendChatMessage } from './CalendarUtils';
+import { ThreeDots } from 'react-loader-spinner';
 
 export default function Chat() {
     const { status, data: session } = useSession();
 
     const [messages, setMessages] = useState([
-        { user: "User2", text: "Hi! My name is Callie, your Google Calendar Assistant. What can I help you with?", color: "green" },
+        { user: "User2", text: "Hi! My name is Calvin, your Google Calendar Assistant. What can I help you with?", color: "green" },
     ]);
 
     const [current_calendar, setCurrentCalendar] = useState('primary');
@@ -27,13 +28,13 @@ export default function Chat() {
         for (let i = 0; i < calendar_objs.length; i++) {
             // Get the key-value pair from the object
             const [calendar_id, name] = Object.entries(calendar_objs[i])[0];
-    
+
             // Check if the name matches
             if (name === calendar_name) {
                 return calendar_id;
             }
         }
-    
+
         // Return an appropriate value if not found
         return "primary";
     };
@@ -97,8 +98,18 @@ export default function Chat() {
         let user_message = currentMessage;
         let calendar_id = get_calendar_id(current_calendar);
         console.log("Sending message to backend: " + user_email + " " + user_message + " " + calendar_id);
+
+        // Set messages to loading
+        setMessages(prevMessages => [
+            ...prevMessages,
+            { user: "User2", text: "Loading...", color: "green" }
+        ]);
+
         const data = await sendChatMessage(user_email, user_message, calendar_id);
         console.log(data);
+
+        // Delete the loading message
+        setMessages(prevMessages => prevMessages.slice(0, prevMessages.length - 1));
 
         // Append the response from the backend
         setMessages(prevMessages => [
@@ -109,7 +120,6 @@ export default function Chat() {
 
     return (
         <div className="flex flex-col h-screen">
-            {/* <div className="flex flex-col h-screen"> */}
             <header className="flex justify-between items-center p-4 bg-gray-800 text-white flex-shrink-0">
                 <div className="flex items-center">
                     <CalendarIcon className="h-8 w-8 text-white" />
@@ -148,7 +158,14 @@ export default function Chat() {
                                         <div className="flex flex-col space-y-2 text-md leading-tight max-w-lg mx-2 order-2 items-start">
                                             <div>
                                                 <span className="px-4 py-3 rounded-xl inline-block rounded-bl-none bg-gray-100 text-gray-600">
-                                                    <Markdown className="markdown-special">{msg.text}</Markdown>
+                                                    {msg.text == "Loading..." ? <ThreeDots
+                                                        height="40"
+                                                        width="40"
+                                                        radius="6"
+                                                        color="#4B5563"
+                                                        ariaLabel="three-dots-loading"
+                                                        visible={true}
+                                                    /> : <Markdown className="markdown-special">{msg.text}</Markdown>}
                                                 </span>
                                             </div>
                                         </div>

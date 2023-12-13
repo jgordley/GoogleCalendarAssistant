@@ -89,7 +89,7 @@ def create_event(user_email, calendar_id, event_name, start_datetime, end_dateti
 
         # Create the event data
         event_data = {
-            "summary": event_name,
+            "summary": event_name + " (created by Calvin)",
             "start": {
                 "dateTime": start_datetime,
                 "timeZone": timezone,  # Replace with your time zone, e.g., "America/New_York"
