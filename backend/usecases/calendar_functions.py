@@ -39,7 +39,9 @@ def get_calendar_events(user_email, calendar_id, start_time, end_time):
         for event in events.get("items", []):
             start = event.get("start")
             date_info = start.get("date", start.get("dateTime"))
-            event_list.append(f"{event.get('summary')}: {date_info}")
+            event_list.append(
+                f"{event.get('summary')}: {date_info} (event ID: {event.get('id')})"
+            )
 
     return event_list
 
@@ -102,3 +104,27 @@ def create_event(user_email, calendar_id, event_name, start_datetime, end_dateti
 
         response = requests.post(endpoint, headers=headers, json=event_data)
         return response.json()
+
+
+def delete_event(user_email, calendar_id, event_id):
+    db = get_db()
+    user = db.users.find_one({"email": user_email})
+
+    if user:
+        access_token = user.get("access_token")
+
+        endpoint = f"https://www.googleapis.com/calendar/v3/calendars/{calendar_id}/events/{event_id}"
+
+        headers = {
+            "Authorization": f"Bearer {access_token}",
+            "Accept": "application/json",
+        }
+
+        response = requests.delete(endpoint, headers=headers)
+
+        # Response should be 204 if successful
+        if response.status_code == 204:
+            return {"message": "Event deleted successfully"}
+
+        else:
+            return {"error": "Failed to delete event"}

@@ -10,10 +10,10 @@ from langchain.agents.output_parsers import OpenAIFunctionsAgentOutputParser
 
 from usecases import (
     GetCalendarEventsTool,
-    CurrentTimeTool,
     TimeDeltaTool,
     CreateCalendarEventTool,
     SpecificTimeTool,
+    DeleteCalendarEventTool,
 )
 
 # Get from environment variables
@@ -25,11 +25,11 @@ def run_agent_executor(user_email: str, user_input: str, calendar_id: str):
     # Options
     llm = ChatOpenAI(temperature=0, model=OPENAI_MODEL, api_key=OPENAI_API_KEY)
     tools = [
-        # CurrentTimeTool(),
         TimeDeltaTool(),
         GetCalendarEventsTool(),
         CreateCalendarEventTool(),
         SpecificTimeTool(),
+        DeleteCalendarEventTool(),
     ]
 
     input = f"""
