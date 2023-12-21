@@ -16,6 +16,9 @@ class CalendarEventSearchInput(BaseModel):
     end_date: str = Field(
         description="End date of the events to search. Must be an RFC3339 timestamp with mandatory time zone offset, for example, 2011-06-03T10:00:00-07:00, 2011-06-03T10:00:00Z."
     )
+    include_event_ids: bool = Field(
+        description="Whether to return the event ids or not. You only need them if you are going to use them for another function."
+    )
 
 
 class GetCalendarEventsTool(BaseTool):
@@ -25,9 +28,16 @@ class GetCalendarEventsTool(BaseTool):
         """
     args_schema: Type[BaseModel] = CalendarEventSearchInput
 
-    def _run(self, user_email: str, calendar_id: str, start_date: str, end_date: str):
+    def _run(
+        self,
+        user_email: str,
+        calendar_id: str,
+        start_date: str,
+        end_date: str,
+        include_event_ids: bool,
+    ):
         events_response = get_calendar_events(
-            user_email, calendar_id, start_date, end_date
+            user_email, calendar_id, start_date, end_date, include_event_ids
         )
         return events_response
 

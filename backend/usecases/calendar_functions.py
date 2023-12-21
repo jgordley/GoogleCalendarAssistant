@@ -6,7 +6,9 @@ from langchain.schema import HumanMessage, SystemMessage
 from dependencies import get_db
 
 
-def get_calendar_events(user_email, calendar_id, start_time, end_time):
+def get_calendar_events(
+    user_email, calendar_id, start_time, end_time, return_event_ids
+):
     db = get_db()
     user = db.users.find_one({"email": user_email})
 
@@ -39,9 +41,12 @@ def get_calendar_events(user_email, calendar_id, start_time, end_time):
         for event in events.get("items", []):
             start = event.get("start")
             date_info = start.get("date", start.get("dateTime"))
-            event_list.append(
-                f"{event.get('summary')}: {date_info} (event ID: {event.get('id')})"
-            )
+            if return_event_ids:
+                event_list.append(
+                    f"{event.get('summary')}: {date_info} (event ID: {event.get('id')})"
+                )
+            else:
+                event_list.append(f"{event.get('summary')}: {date_info}")
 
     return event_list
 

@@ -43,7 +43,10 @@ user input: {user_input}
 
     prompt = ChatPromptTemplate.from_messages(
         [
-            ("system", "You are a helpful and friendly Google Calendar assistant"),
+            (
+                "system",
+                "You are a funny and friendly Google Calendar assistant. NEVER print event ids to the user.",
+            ),
             ("user", "{input}"),
             MessagesPlaceholder(variable_name="agent_scratchpad"),
         ]
